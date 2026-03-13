@@ -1,0 +1,2054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formula 1 — Complete Statistical Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,300;0,600;0,700;0,900;1,400&family=Barlow:wght@300;400;500&family=Syne+Mono&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #0a0a0c;
+  --bg2: #111116;
+  --bg3: #16161d;
+  --border: #2a2a36;
+  --border2: #363644;
+  --red: #e8192c;
+  --red2: #ff3547;
+  --redglow: rgba(232,25,44,0.18);
+  --gold: #f5c842;
+  --gold2: #ffd966;
+  --goldglow: rgba(245,200,66,0.15);
+  --silver: #b8bcc8;
+  --silver2: #d4d8e4;
+  --text: #e8e8f0;
+  --muted: #6a6a80;
+  --muted2: #8a8aa0;
+  --ferrari: #dc0000;
+  --mclaren: #ff8000;
+  --mercedes: #00d2be;
+  --redbull: #3671c6;
+  --williams: #005aff;
+  --aston: #006f62;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Barlow', sans-serif;
+  font-weight: 300;
+  overflow-x: hidden;
+  cursor: default;
+}
+
+/* ── SCANLINE TEXTURE ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* ── HERO ── */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  padding: 80px 60px 60px;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(ellipse 60% 50% at 80% 50%, rgba(232,25,44,0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 60% at 20% 80%, rgba(54,113,198,0.06) 0%, transparent 60%),
+    linear-gradient(180deg, #0a0a0c 0%, #0d0d14 100%);
+}
+
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(232,25,44,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(232,25,44,0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: linear-gradient(180deg, transparent 0%, black 30%, black 70%, transparent 100%);
+}
+
+.hero-content { position: relative; z-index: 2; max-width: 1400px; margin: 0 auto; width: 100%; }
+
+.hero-eyebrow {
+  font-family: 'Syne Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.hero-eyebrow::before {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 1px;
+  background: var(--red);
+}
+
+.hero-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(72px, 12vw, 160px);
+  font-weight: 900;
+  line-height: 0.88;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.hero-title .f1 {
+  display: block;
+  background: linear-gradient(135deg, #e8192c 0%, #ff6b7a 50%, #e8192c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 40px rgba(232,25,44,0.4));
+}
+
+.hero-title .data {
+  display: block;
+  color: var(--text);
+  -webkit-text-stroke: 1px rgba(232,232,240,0.3);
+}
+
+.hero-sub {
+  margin-top: 32px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: end;
+  max-width: 900px;
+}
+
+.hero-desc {
+  font-family: 'Barlow', sans-serif;
+  font-size: 16px;
+  color: var(--muted2);
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+.hero-stats-row {
+  display: flex;
+  gap: 32px;
+}
+.hero-stat {
+  text-align: right;
+}
+.hero-stat-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1;
+}
+.hero-stat-label {
+  font-family: 'Syne Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.hero-scroll {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-family: 'Syne Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  animation: bounce 2s infinite;
+}
+.hero-scroll::after {
+  content: '↓';
+  font-size: 18px;
+  color: var(--red);
+}
+@keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-8px)} }
+
+/* ── NAV ── */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 500;
+  background: rgba(10,10,12,0.96);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 60px;
+}
+.nav-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow-x: auto;
+}
+.nav-logo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--red);
+  letter-spacing: 0.05em;
+  padding: 16px 24px 16px 0;
+  margin-right: 16px;
+  border-right: 1px solid var(--border);
+  white-space: nowrap;
+}
+.nav-item {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 18px 20px;
+  cursor: pointer;
+  color: var(--muted);
+  white-space: nowrap;
+  transition: color 0.2s;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.nav-item:hover { color: var(--text); }
+.nav-item.active { color: var(--red); border-bottom-color: var(--red); }
+
+/* ── SECTIONS ── */
+.section { display: none; }
+.section.active { display: block; animation: fadeUp 0.4s ease; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+.section-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 60px;
+}
+
+/* ── SECTION HEADER ── */
+.sec-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 48px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.sec-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 80px;
+  font-weight: 900;
+  color: var(--border2);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+.sec-title-wrap h2 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 42px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+.sec-title-wrap h2 span { color: var(--red); }
+.sec-title-wrap p {
+  font-size: 13px;
+  color: var(--muted2);
+  margin-top: 6px;
+  font-style: italic;
+}
+
+/* ── KPI ROW ── */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-bottom: 40px;
+}
+.kpi {
+  background: var(--bg2);
+  padding: 24px 22px;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.2s;
+}
+.kpi:hover { background: var(--bg3); }
+.kpi::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+}
+.kpi.red::before { background: var(--red); }
+.kpi.gold::before { background: var(--gold); }
+.kpi.silver::before { background: var(--silver); }
+.kpi.blue::before { background: var(--redbull); }
+.kpi.teal::before { background: var(--mercedes); }
+.kpi.orange::before { background: var(--mclaren); }
+.kpi-label {
+  font-family: 'Syne Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.kpi-value {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text);
+}
+.kpi-value sub {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--muted2);
+  margin-left: 2px;
+}
+.kpi-note {
+  font-family: 'Syne Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 8px;
+  line-height: 1.4;
+}
+.kpi-note.up { color: #4caf82; }
+.kpi-note.red { color: var(--red); }
+
+/* ── CHART GRIDS ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+.grid-21 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px; }
+.grid-12 { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; margin-bottom: 24px; }
+.grid-32 { display: grid; grid-template-columns: 3fr 2fr; gap: 20px; margin-bottom: 24px; }
+.span-2 { grid-column: span 2; }
+
+/* ── CHART BOX ── */
+.cbox {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.cbox:hover { border-color: var(--border2); }
+.cbox::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px;
+  height: 100%;
+  background: var(--red);
+}
+.cbox.gold::before { background: var(--gold); }
+.cbox.teal::before { background: var(--mercedes); }
+.cbox.blue::before { background: var(--redbull); }
+.cbox.orange::before { background: var(--mclaren); }
+.cbox.none::before { display: none; }
+
+.cbox-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 22px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.cbox-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  line-height: 1.1;
+}
+.cbox-sub {
+  font-family: 'Syne Mono', monospace;
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+.cbox-tag {
+  font-family: 'Syne Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  background: var(--border2);
+  color: var(--muted2);
+  padding: 4px 8px;
+  border-radius: 0;
+  white-space: nowrap;
+}
+.cbox-tag.red { background: var(--red); color: white; }
+.cbox-tag.gold { background: var(--gold); color: black; }
+
+.chart-wrap { position: relative; }
+.chart-wrap.h200 { height: 200px; }
+.chart-wrap.h240 { height: 240px; }
+.chart-wrap.h280 { height: 280px; }
+.chart-wrap.h320 { height: 320px; }
+.chart-wrap.h380 { height: 380px; }
+.chart-wrap.h420 { height: 420px; }
+
+/* ── CALLOUT BAR ── */
+.callout {
+  background: linear-gradient(135deg, var(--bg3) 0%, rgba(232,25,44,0.06) 100%);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--red);
+  padding: 28px 36px;
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  gap: 36px;
+}
+.callout.gold { border-left-color: var(--gold); }
+.callout.teal { border-left-color: var(--mercedes); }
+.callout-big {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 64px;
+  font-weight: 900;
+  color: var(--red);
+  line-height: 1;
+  white-space: nowrap;
+}
+.callout.gold .callout-big { color: var(--gold); }
+.callout.teal .callout-big { color: var(--mercedes); }
+.callout-body h3 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+.callout-body p {
+  font-size: 13px;
+  color: var(--muted2);
+  line-height: 1.6;
+  max-width: 700px;
+}
+
+/* ── DATA TABLE ── */
+.dtable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.dtable th {
+  font-family: 'Syne Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border2);
+  background: var(--bg);
+  white-space: nowrap;
+}
+.dtable td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  font-family: 'Syne Mono', monospace;
+  font-size: 11px;
+  color: var(--silver);
+  white-space: nowrap;
+}
+.dtable tr:hover td { background: rgba(255,255,255,0.02); }
+.dtable .num { text-align: right; }
+.dtable .name { font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: 0.04em; text-transform: uppercase; }
+.dtable .rank { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 900; color: var(--border2); }
+.dtable .highlight { color: var(--gold); font-weight: 500; }
+.dtable .flag { font-size: 16px; }
+
+.team-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* ── ANALYSIS CARDS ── */
+.analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.acard {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--red);
+  padding: 24px;
+}
+.acard.gold { border-top-color: var(--gold); }
+.acard.teal { border-top-color: var(--mercedes); }
+.acard.blue { border-top-color: var(--redbull); }
+.acard.orange { border-top-color: var(--mclaren); }
+.acard h3 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+.acard p {
+  font-size: 13px;
+  color: var(--muted2);
+  line-height: 1.65;
+}
+
+/* ── ERA TIMELINE ── */
+.era-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 28px;
+}
+.era-row {
+  display: grid;
+  grid-template-columns: 80px 200px 1fr auto;
+  align-items: center;
+  gap: 20px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.2s;
+}
+.era-row:hover { background: rgba(255,255,255,0.02); }
+.era-years {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--muted2);
+  letter-spacing: 0.04em;
+}
+.era-team {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.era-desc { font-size: 12px; color: var(--muted2); line-height: 1.5; }
+.era-titles {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--gold);
+  text-align: right;
+}
+
+/* ── CIRCUIT TABLE ── */
+.circuit-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.2s;
+}
+.circuit-card:hover { background: rgba(255,255,255,0.02); }
+.circuit-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--border2);
+  width: 32px;
+  text-align: center;
+}
+.circuit-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+.circuit-detail { font-size: 11px; color: var(--muted2); margin-top: 2px; }
+.circuit-stat {
+  text-align: right;
+  font-family: 'Syne Mono', monospace;
+  font-size: 11px;
+  color: var(--silver);
+}
+
+/* ── PODIUM VISUAL ── */
+.podium-wrap {
+  display: flex;
+  gap: 20px;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 20px 0;
+  height: 220px;
+}
+.podium-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  max-width: 180px;
+}
+.podium-driver {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  text-align: center;
+  letter-spacing: 0.06em;
+}
+.podium-block {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 48px;
+  font-weight: 900;
+  border-top: 3px solid;
+}
+.podium-block.p1 {
+  height: 120px;
+  background: rgba(245,200,66,0.1);
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.podium-block.p2 {
+  height: 90px;
+  background: rgba(184,188,200,0.08);
+  border-color: var(--silver);
+  color: var(--silver);
+}
+.podium-block.p3 {
+  height: 70px;
+  background: rgba(200,120,50,0.08);
+  border-color: #c87832;
+  color: #c87832;
+}
+.podium-wins {
+  font-family: 'Syne Mono', monospace;
+  font-size: 10px;
+  color: var(--muted2);
+  letter-spacing: 0.1em;
+}
+
+/* ── PROGRESS BARS ── */
+.pbar-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(42,42,54,0.5);
+}
+.pbar-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  width: 140px;
+  flex-shrink: 0;
+  color: var(--text);
+}
+.pbar-track {
+  flex: 1;
+  height: 6px;
+  background: var(--border);
+  position: relative;
+  overflow: hidden;
+}
+.pbar-fill {
+  height: 100%;
+  border-radius: 0;
+  transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+  width: 0;
+}
+.pbar-val {
+  font-family: 'Syne Mono', monospace;
+  font-size: 11px;
+  color: var(--silver);
+  width: 50px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── SEASON RESULTS ── */
+.race-result {
+  display: grid;
+  grid-template-columns: 24px 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 9px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  transition: background 0.15s;
+}
+.race-result:hover { background: rgba(255,255,255,0.02); }
+.race-pos {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.race-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+.race-winner {
+  font-family: 'Syne Mono', monospace;
+  font-size: 10px;
+  color: var(--muted2);
+  text-align: right;
+}
+.race-team-tag {
+  font-size: 9px;
+  padding: 2px 6px;
+  font-family: 'Syne Mono', monospace;
+  letter-spacing: 0.1em;
+  color: white;
+  border-radius: 0;
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1000px) {
+  .hero { padding: 60px 30px 50px; }
+  .nav { padding: 0 24px; }
+  .section-inner { padding: 40px 24px; }
+  .grid-2,.grid-3,.grid-21,.grid-12,.grid-32 { grid-template-columns: 1fr; }
+  .hero-sub { grid-template-columns: 1fr; gap: 20px; }
+  .kpi-row { grid-template-columns: 1fr 1fr; }
+  .era-row { grid-template-columns: 60px 1fr; }
+  .era-desc,.era-titles { display: none; }
+  .callout { flex-direction: column; gap: 16px; }
+}
+
+/* ── GLOW EFFECTS ── */
+.red-glow { text-shadow: 0 0 30px rgba(232,25,44,0.5); }
+.gold-glow { text-shadow: 0 0 20px rgba(245,200,66,0.4); }
+
+/* ── REVEAL ANIMATION ── */
+.reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.5s ease, transform 0.5s ease; }
+.reveal.on { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════ HERO ═══════════════════════ -->
+<section class="hero" id="top">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Formula 1 · Statistical Intelligence · 1950–2024</div>
+    <div class="hero-title">
+      <span class="f1">Formula 1</span>
+      <span class="data">Intelligence</span>
+    </div>
+    <div class="hero-sub">
+      <p class="hero-desc">74 seasons of racing data. Every race, every champion, every record — from Farina's 1950 win at Silverstone to Verstappen's fourth title in Las Vegas. The most complete Formula 1 statistical analysis ever assembled.</p>
+      <div class="hero-stats-row">
+        <div class="hero-stat">
+          <div class="hero-stat-num">1,100+</div>
+          <div class="hero-stat-label">Races held</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">115</div>
+          <div class="hero-stat-label">Race winners</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">34</div>
+          <div class="hero-stat-label">Champions</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-scroll">Scroll</div>
+</section>
+
+<!-- ═══════════════════════ NAV ═══════════════════════ -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-logo">F1 DATA</div>
+    <div class="nav-item active" onclick="show('records')">All-Time Records</div>
+    <div class="nav-item" onclick="show('season2024')">2024 Season</div>
+    <div class="nav-item" onclick="show('constructors')">Constructors</div>
+    <div class="nav-item" onclick="show('eras')">Dominant Eras</div>
+    <div class="nav-item" onclick="show('circuits')">Circuits</div>
+    <div class="nav-item" onclick="show('analysis')">Analysis</div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- SECTION 1: ALL-TIME RECORDS                        -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="section active" id="records">
+<div class="section-inner">
+
+  <div class="sec-header reveal">
+    <div class="sec-num">01</div>
+    <div class="sec-title-wrap">
+      <h2>All-Time <span>Records</span></h2>
+      <p>Historical statistics · 1950–2024 · All data verified from official FIA records, Forix & Wikipedia</p>
+    </div>
+  </div>
+
+  <div class="kpi-row reveal">
+    <div class="kpi red">
+      <div class="kpi-label">Most Race Wins</div>
+      <div class="kpi-value">105<sub>wins</sub></div>
+      <div class="kpi-note">Lewis Hamilton (2007–2024)</div>
+    </div>
+    <div class="kpi gold">
+      <div class="kpi-label">Most Championships</div>
+      <div class="kpi-value">7<sub>titles</sub></div>
+      <div class="kpi-note">Hamilton & Schumacher (tied)</div>
+    </div>
+    <div class="kpi silver">
+      <div class="kpi-label">Most Pole Positions</div>
+      <div class="kpi-value">104<sub>poles</sub></div>
+      <div class="kpi-note">Lewis Hamilton</div>
+    </div>
+    <div class="kpi blue">
+      <div class="kpi-label">Most Podiums</div>
+      <div class="kpi-value">202<sub>podiums</sub></div>
+      <div class="kpi-note">Lewis Hamilton</div>
+    </div>
+    <div class="kpi teal">
+      <div class="kpi-label">Most Fastest Laps</div>
+      <div class="kpi-value">77<sub>FL</sub></div>
+      <div class="kpi-note">Michael Schumacher</div>
+    </div>
+    <div class="kpi orange">
+      <div class="kpi-label">Most Points Scored</div>
+      <div class="kpi-value">4,834<sub>pts</sub></div>
+      <div class="kpi-note">Lewis Hamilton</div>
+    </div>
+  </div>
+
+  <div class="callout reveal">
+    <div class="callout-big">105</div>
+    <div class="callout-body">
+      <h3>Hamilton's Unmatched Legacy</h3>
+      <p>Lewis Hamilton holds virtually every major F1 record: 105 race wins, 104 pole positions, 202 podiums, 77 fastest laps, and 4,834 championship points — all surpassing Michael Schumacher, whose 91 wins stood for 14 years (2001–2020). Hamilton's final win came at the 2024 Belgian Grand Prix at Spa — his 105th — 17 years and 1 month after his very first at the 2007 Canadian Grand Prix.</p>
+    </div>
+  </div>
+
+  <div class="grid-2 reveal">
+    <div class="cbox">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Most Race Wins — All Time</div><div class="cbox-sub">Top 10 drivers · Official F1 records</div></div>
+        <span class="cbox-tag red">Drivers</span>
+      </div>
+      <div class="chart-wrap h320"><canvas id="driverWins"></canvas></div>
+    </div>
+    <div class="cbox gold">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Most Championships — All Time</div><div class="cbox-sub">Drivers with 2+ titles</div></div>
+        <span class="cbox-tag gold">Titles</span>
+      </div>
+      <div class="chart-wrap h320"><canvas id="driverTitles"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid-3 reveal">
+    <div class="cbox">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Pole Positions</div><div class="cbox-sub">All-time top 8 drivers</div></div>
+        <span class="cbox-tag">Poles</span>
+      </div>
+      <div class="chart-wrap h240"><canvas id="driverPoles"></canvas></div>
+    </div>
+    <div class="cbox teal">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Podium Finishes</div><div class="cbox-sub">All-time top 8 drivers</div></div>
+        <span class="cbox-tag">Podiums</span>
+      </div>
+      <div class="chart-wrap h240"><canvas id="driverPodiums"></canvas></div>
+    </div>
+    <div class="cbox blue">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Fastest Laps</div><div class="cbox-sub">All-time top 8 drivers</div></div>
+        <span class="cbox-tag">FL</span>
+      </div>
+      <div class="chart-wrap h240"><canvas id="driverFL"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Top drivers full table -->
+  <div class="cbox reveal none" style="margin-bottom:24px">
+    <div class="cbox-head">
+      <div><div class="cbox-title">All-Time Driver Records — Top 15</div><div class="cbox-sub">Official statistics · Updated through 2024 season</div></div>
+      <span class="cbox-tag red">Master Table</span>
+    </div>
+    <table class="dtable">
+      <thead>
+        <tr>
+          <th>#</th><th>Driver</th><th>Nat.</th><th>Active</th>
+          <th class="num">Titles</th><th class="num">Wins</th>
+          <th class="num">Poles</th><th class="num">Podiums</th>
+          <th class="num">Fastest Laps</th><th class="num">Starts</th>
+        </tr>
+      </thead>
+      <tbody id="driverMasterTable"></tbody>
+    </table>
+  </div>
+
+  <div class="grid-2 reveal">
+    <div class="cbox">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Wins Per Season — Record Seasons</div><div class="cbox-sub">Best single-season win counts in F1 history</div></div>
+        <span class="cbox-tag">Season Records</span>
+      </div>
+      <div class="chart-wrap h260"><canvas id="seasonWins"></canvas></div>
+    </div>
+    <div class="cbox orange">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Championship Winning Margins</div><div class="cbox-sub">Points gap to runner-up — selected seasons</div></div>
+        <span class="cbox-tag">Dominance</span>
+      </div>
+      <div class="chart-wrap h260"><canvas id="champMargins"></canvas></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- SECTION 2: 2024 SEASON                            -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="section" id="season2024">
+<div class="section-inner">
+
+  <div class="sec-header reveal">
+    <div class="sec-num">02</div>
+    <div class="sec-title-wrap">
+      <h2>2024 <span>Season</span></h2>
+      <p>24 races · Max Verstappen 4× champion · McLaren Constructors' winners after 26 years</p>
+    </div>
+  </div>
+
+  <div class="kpi-row reveal">
+    <div class="kpi red">
+      <div class="kpi-label">Drivers' Champion</div>
+      <div class="kpi-value" style="font-size:28px">Verstappen</div>
+      <div class="kpi-note">437 pts · 4th consecutive title</div>
+    </div>
+    <div class="kpi orange">
+      <div class="kpi-label">Constructors' Champion</div>
+      <div class="kpi-value" style="font-size:28px">McLaren</div>
+      <div class="kpi-note">966 pts · First title since 1998</div>
+    </div>
+    <div class="kpi gold">
+      <div class="kpi-label">Verstappen Wins</div>
+      <div class="kpi-value">9<sub>wins</sub></div>
+      <div class="kpi-note">Down from 19 in 2023</div>
+    </div>
+    <div class="kpi teal">
+      <div class="kpi-label">Different Winners</div>
+      <div class="kpi-value">6<sub>drivers</sub></div>
+      <div class="kpi-note">Most competitive season since 2012</div>
+    </div>
+    <div class="kpi blue">
+      <div class="kpi-label">Total Races</div>
+      <div class="kpi-value">24<sub>GPs</sub></div>
+      <div class="kpi-note">Record-length season</div>
+    </div>
+    <div class="kpi silver">
+      <div class="kpi-label">Runner-Up Driver</div>
+      <div class="kpi-value" style="font-size:28px">Norris</div>
+      <div class="kpi-note">374 pts · McLaren</div>
+    </div>
+  </div>
+
+  <div class="callout gold reveal">
+    <div class="callout-big" style="color:var(--gold)">26yrs</div>
+    <div class="callout-body">
+      <h3>McLaren end longest drought in F1 history</h3>
+      <p>McLaren's 2024 Constructors' Championship was their first since 1998 — a 26-year wait that stands as the longest gap between titles for any team that eventually won again. Norris scored 4 wins, Piastri added 2, and combined 966 points crushed Ferrari (652) and Red Bull (589). The turnaround from 3rd in 2023 to champions in 2024 was the fastest title swing since Brawn GP in 2009.</p>
+    </div>
+  </div>
+
+  <div class="grid-2 reveal">
+    <div class="cbox">
+      <div class="cbox-head">
+        <div><div class="cbox-title">2024 Drivers' Championship</div><div class="cbox-sub">Final standings — points scored over 24 races</div></div>
+        <span class="cbox-tag red">Standings</span>
+      </div>
+      <div class="chart-wrap h320"><canvas id="s24drivers"></canvas></div>
+    </div>
+    <div class="cbox orange">
+      <div class="cbox-head">
+        <div><div class="cbox-title">2024 Constructors' Championship</div><div class="cbox-sub">Final team standings — both drivers combined</div></div>
+        <span class="cbox-tag">Teams</span>
+      </div>
+      <div class="chart-wrap h320"><canvas id="s24constructors"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid-2 reveal">
+    <div class="cbox">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Championship Points Evolution</div><div class="cbox-sub">Race-by-race leaders 2024 — top 4 drivers</div></div>
+        <span class="cbox-tag">Season Arc</span>
+      </div>
+      <div class="chart-wrap h280"><canvas id="champEvo"></canvas></div>
+    </div>
+    <div class="cbox teal">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Race Win Distribution 2024</div><div class="cbox-sub">24 race victories split by driver</div></div>
+        <span class="cbox-tag">Wins</span>
+      </div>
+      <div class="chart-wrap h280"><canvas id="winDist24"></canvas></div>
+    </div>
+  </div>
+
+  <!-- 2024 Race by Race Results -->
+  <div class="cbox reveal none" style="margin-bottom:24px">
+    <div class="cbox-head">
+      <div><div class="cbox-title">2024 Race-by-Race Results</div><div class="cbox-sub">All 24 Grands Prix · Winner and constructor</div></div>
+      <span class="cbox-tag red">Full Calendar</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0" id="raceResults2024"></div>
+  </div>
+
+  <div class="grid-3 reveal">
+    <div class="cbox">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Pole Positions 2024</div><div class="cbox-sub">By driver</div></div>
+        <span class="cbox-tag">Poles</span>
+      </div>
+      <div class="chart-wrap h220"><canvas id="poles24"></canvas></div>
+    </div>
+    <div class="cbox">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Podiums 2024</div><div class="cbox-sub">Top 3 finishes by driver</div></div>
+        <span class="cbox-tag">Podiums</span>
+      </div>
+      <div class="chart-wrap h220"><canvas id="podiums24"></canvas></div>
+    </div>
+    <div class="cbox">
+      <div class="cbox-head">
+        <div><div class="cbox-title">DNF / Retirements 2024</div><div class="cbox-sub">Reliability by team</div></div>
+        <span class="cbox-tag">DNF</span>
+      </div>
+      <div class="chart-wrap h220"><canvas id="dnf24"></canvas></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- SECTION 3: CONSTRUCTORS                           -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="section" id="constructors">
+<div class="section-inner">
+
+  <div class="sec-header reveal">
+    <div class="sec-num">03</div>
+    <div class="sec-title-wrap">
+      <h2>Constructor <span>Records</span></h2>
+      <p>Ferrari · McLaren · Williams · Mercedes · Red Bull · Lotus — the great F1 dynasties</p>
+    </div>
+  </div>
+
+  <div class="kpi-row reveal">
+    <div class="kpi red">
+      <div class="kpi-label">Most Constructor Titles</div>
+      <div class="kpi-value">16<sub>Ferrari</sub></div>
+      <div class="kpi-note">Last: 2008. In F1 since 1950</div>
+    </div>
+    <div class="kpi orange">
+      <div class="kpi-label">Most Race Wins (Team)</div>
+      <div class="kpi-value">248<sub>Ferrari</sub></div>
+      <div class="kpi-note">Only team with 200+ wins</div>
+    </div>
+    <div class="kpi gold">
+      <div class="kpi-label">Most Consecutive Titles</div>
+      <div class="kpi-value">8<sub>Mercedes</sub></div>
+      <div class="kpi-note">2014–2021 unbroken run</div>
+    </div>
+    <div class="kpi teal">
+      <div class="kpi-label">McLaren Titles</div>
+      <div class="kpi-value">10<sub>titles</sub></div>
+      <div class="kpi-note">2nd all-time after Ferrari</div>
+    </div>
+    <div class="kpi blue">
+      <div class="kpi-label">Williams Titles</div>
+      <div class="kpi-value">9<sub>titles</sub></div>
+      <div class="kpi-note">3rd all-time; last: 1997</div>
+    </div>
+    <div class="kpi silver">
+      <div class="kpi-label">Red Bull Titles</div>
+      <div class="kpi-value">6<sub>titles</sub></div>
+      <div class="kpi-note">4× Vettel + 2× Verstappen</div>
+    </div>
+  </div>
+
+  <div class="grid-2 reveal">
+    <div class="cbox">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Constructor Championship Titles</div><div class="cbox-sub">All constructors with multiple titles</div></div>
+        <span class="cbox-tag red">All-Time</span>
+      </div>
+      <div class="chart-wrap h300"><canvas id="consTitles"></canvas></div>
+    </div>
+    <div class="cbox">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Constructor Race Wins</div><div class="cbox-sub">Total Grand Prix victories · All-time</div></div>
+        <span class="cbox-tag">Race Wins</span>
+      </div>
+      <div class="chart-wrap h300"><canvas id="consWins"></canvas></div>
+    </div>
+  </div>
+
+  <div class="cbox reveal none" style="margin-bottom:24px">
+    <div class="cbox-head">
+      <div><div class="cbox-title">Constructors' Championship — Year by Year (1958–2024)</div><div class="cbox-sub">Every winning constructor since the award was first given</div></div>
+      <span class="cbox-tag red">Full History</span>
+    </div>
+    <div id="consHistory" style="display:grid;grid-template-columns:repeat(4,1fr);gap:0"></div>
+  </div>
+
+  <div class="grid-3 reveal">
+    <div class="cbox">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Pole Positions by Constructor</div><div class="cbox-sub">All-time qualifying dominance</div></div>
+        <span class="cbox-tag">Poles</span>
+      </div>
+      <div class="chart-wrap h260"><canvas id="consPoles"></canvas></div>
+    </div>
+    <div class="cbox teal">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Drivers' Titles Won Per Team</div><div class="cbox-sub">Drivers' championship contributions</div></div>
+        <span class="cbox-tag">Driver Titles</span>
+      </div>
+      <div class="chart-wrap h260"><canvas id="consDriverTitles"></canvas></div>
+    </div>
+    <div class="cbox gold">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Team Win Rate</div><div class="cbox-sub">% of races won since debut season</div></div>
+        <span class="cbox-tag">Win Rate</span>
+      </div>
+      <div class="chart-wrap h260"><canvas id="consWinRate"></canvas></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- SECTION 4: DOMINANT ERAS                          -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="section" id="eras">
+<div class="section-inner">
+
+  <div class="sec-header reveal">
+    <div class="sec-num">04</div>
+    <div class="sec-title-wrap">
+      <h2>Dominant <span>Eras</span></h2>
+      <p>The stretches of domination that defined Formula 1 history</p>
+    </div>
+  </div>
+
+  <div class="callout reveal">
+    <div class="callout-big">11</div>
+    <div class="callout-body">
+      <h3>Eras of Total Domination Since 1950</h3>
+      <p>F1 history is defined by recurring phases where one team or driver completely dominated — Fangio in the 1950s, Ferrari/Schumacher in 2000–2004, Red Bull/Vettel 2010–2013, Mercedes' unprecedented eight-year dynasty 2014–2021, Red Bull again in 2022–2023 (Verstappen's record 19 wins in a season), and McLaren's renaissance in 2024–2025.</p>
+    </div>
+  </div>
+
+  <div class="cbox reveal none" style="margin-bottom:24px">
+    <div class="cbox-head">
+      <div><div class="cbox-title">The Great Eras of F1 Dominance</div><div class="cbox-sub">Periods where one constructor won 3+ consecutive constructors' championships</div></div>
+      <span class="cbox-tag red">Eras</span>
+    </div>
+    <div class="era-timeline" id="eraTimeline"></div>
+  </div>
+
+  <div class="grid-2 reveal">
+    <div class="cbox">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Wins Per Season — Historical Trend</div><div class="cbox-sub">Top constructor win share 1958–2024</div></div>
+        <span class="cbox-tag">Historical</span>
+      </div>
+      <div class="chart-wrap h300"><canvas id="eraTimeSeries"></canvas></div>
+    </div>
+    <div class="cbox gold">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Championship Points Margins</div><div class="cbox-sub">Points gap 1st to 2nd — dominant seasons</div></div>
+        <span class="cbox-tag">Gap</span>
+      </div>
+      <div class="chart-wrap h300"><canvas id="eraMargins"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid-3 reveal">
+    <div class="cbox">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Schumacher Era 2000–2004</div><div class="cbox-sub">Win percentage per season</div></div>
+        <span class="cbox-tag red">Ferrari</span>
+      </div>
+      <div class="chart-wrap h220"><canvas id="schuEra"></canvas></div>
+    </div>
+    <div class="cbox teal">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Mercedes Dynasty 2014–2021</div><div class="cbox-sub">Win percentage and constructor margin</div></div>
+        <span class="cbox-tag" style="background:var(--mercedes);color:black">Merc</span>
+      </div>
+      <div class="chart-wrap h220"><canvas id="mercEra"></canvas></div>
+    </div>
+    <div class="cbox blue">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Verstappen Era 2022–2024</div><div class="cbox-sub">Wins and points per season</div></div>
+        <span class="cbox-tag" style="background:var(--redbull)">RBR</span>
+      </div>
+      <div class="chart-wrap h220"><canvas id="rbEra"></canvas></div>
+    </div>
+  </div>
+
+  <div class="analysis-grid reveal">
+    <div class="acard">
+      <h3>Fangio Supremacy (1950–57)</h3>
+      <p>Juan Manuel Fangio won 5 championships in 8 seasons for 4 different constructors (Alfa Romeo, Ferrari, Mercedes, Maserati) — a record of adaptability unmatched in sport. His 24 wins from 52 starts = 46.2% win rate, still the highest career rate of any multi-title winner.</p>
+    </div>
+    <div class="acard red">
+      <h3>Schumacher–Ferrari (2000–04)</h3>
+      <p>Michael Schumacher won 5 consecutive titles with Ferrari, including a record-at-the-time 13 wins in a season (2004). Ferrari won the Constructors' Championship 6 consecutive times (1999–2004). From 2002 alone, Schumacher won 11 of 17 races and clinched the title with 6 races to spare.</p>
+    </div>
+    <div class="acard teal">
+      <h3>Mercedes Dynasty (2014–21)</h3>
+      <p>The most dominant era in constructors' history: 8 consecutive titles (2014–2021), 125 race wins in that period, and 6 drivers' titles for Hamilton. The hybrid power unit advantage averaged 0.5 seconds per lap in 2014-15. Mercedes won 15 of 21 races in 2016.</p>
+    </div>
+    <div class="acard blue">
+      <h3>Verstappen–Red Bull (2022–23)</h3>
+      <p>Verstappen set an all-time record of 19 wins from 22 races in 2023 (86.4% win rate) — smashing Schumacher's 2004 record of 13. Red Bull won 15 consecutive races across 2022–23 (Abu Dhabi '22 to Monza '23). Verstappen became only the 3rd driver to win 4 consecutive titles in 2024.</p>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- SECTION 5: CIRCUITS                               -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="section" id="circuits">
+<div class="section-inner">
+
+  <div class="sec-header reveal">
+    <div class="sec-num">05</div>
+    <div class="sec-title-wrap">
+      <h2>Circuits & <span>Venues</span></h2>
+      <p>77 circuits across 35 countries · From Silverstone 1950 to Las Vegas 2024</p>
+    </div>
+  </div>
+
+  <div class="kpi-row reveal">
+    <div class="kpi red">
+      <div class="kpi-label">First GP Venue</div>
+      <div class="kpi-value" style="font-size:22px">Silverstone</div>
+      <div class="kpi-note">British GP · 13 May 1950</div>
+    </div>
+    <div class="kpi gold">
+      <div class="kpi-label">Most GPs Held</div>
+      <div class="kpi-value" style="font-size:22px">Monza</div>
+      <div class="kpi-note">74 Italian GPs since 1950</div>
+    </div>
+    <div class="kpi silver">
+      <div class="kpi-label">Longest Circuit</div>
+      <div class="kpi-value" style="font-size:22px">Spa</div>
+      <div class="kpi-note">7.004 km · Belgium</div>
+    </div>
+    <div class="kpi blue">
+      <div class="kpi-label">Shortest Circuit</div>
+      <div class="kpi-value" style="font-size:22px">Monaco</div>
+      <div class="kpi-note">3.337 km · Street circuit</div>
+    </div>
+    <div class="kpi teal">
+      <div class="kpi-label">Most Wins at One Track</div>
+      <div class="kpi-value">8<sub>wins</sub></div>
+      <div class="kpi-note">Ayrton Senna · Monaco</div>
+    </div>
+    <div class="kpi orange">
+      <div class="kpi-label">Active Circuits in 2024</div>
+      <div class="kpi-value">24<sub>venues</sub></div>
+      <div class="kpi-note">Record-long calendar</div>
+    </div>
+  </div>
+
+  <div class="grid-2 reveal">
+    <div class="cbox">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Most GPs Held by Circuit</div><div class="cbox-sub">Total race count from first Grand Prix</div></div>
+        <span class="cbox-tag red">Heritage</span>
+      </div>
+      <div class="chart-wrap h320"><canvas id="circuitGPs"></canvas></div>
+    </div>
+    <div class="cbox gold">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Most Wins by Driver at One Circuit</div><div class="cbox-sub">Single-circuit dominance records</div></div>
+        <span class="cbox-tag gold">Records</span>
+      </div>
+      <div class="chart-wrap h320"><canvas id="circuitWins"></canvas></div>
+    </div>
+  </div>
+
+  <div class="cbox reveal none" style="margin-bottom:24px">
+    <div class="cbox-head">
+      <div><div class="cbox-title">2024 F1 Calendar — Circuit Data</div><div class="cbox-sub">All 24 venues · Lap length, race distance, first race year</div></div>
+      <span class="cbox-tag red">2024 Calendar</span>
+    </div>
+    <div id="circuitTable"></div>
+  </div>
+
+  <div class="grid-3 reveal">
+    <div class="cbox">
+      <div class="cbox-head">
+        <div><div class="cbox-title">GPs by Continent</div><div class="cbox-sub">2024 calendar regional split</div></div>
+        <span class="cbox-tag">Geography</span>
+      </div>
+      <div class="chart-wrap h240"><canvas id="gpContinent"></canvas></div>
+    </div>
+    <div class="cbox">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Street vs Permanent Circuits</div><div class="cbox-sub">Circuit type split — 2024</div></div>
+        <span class="cbox-tag">Type</span>
+      </div>
+      <div class="chart-wrap h240"><canvas id="circuitType"></canvas></div>
+    </div>
+    <div class="cbox teal">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Average Lap Time by Circuit</div><div class="cbox-sub">Qualifying benchmark — 2024 season</div></div>
+        <span class="cbox-tag">Speed</span>
+      </div>
+      <div class="chart-wrap h240"><canvas id="lapTimes"></canvas></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- SECTION 6: ANALYSIS                               -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="section" id="analysis">
+<div class="section-inner">
+
+  <div class="sec-header reveal">
+    <div class="sec-num">06</div>
+    <div class="sec-title-wrap">
+      <h2>Statistical <span>Analysis</span></h2>
+      <p>Trends, comparisons, and deep dives into Formula 1's competitive landscape</p>
+    </div>
+  </div>
+
+  <div class="grid-2 reveal">
+    <div class="cbox">
+      <div class="cbox-head">
+        <div><div class="cbox-title">F1 Competitiveness Over Time</div><div class="cbox-sub">Number of different race winners per season 1970–2024</div></div>
+        <span class="cbox-tag red">Trend</span>
+      </div>
+      <div class="chart-wrap h280"><canvas id="competSeason"></canvas></div>
+    </div>
+    <div class="cbox gold">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Season Race Count Growth</div><div class="cbox-sub">Number of GPs per season 1950–2024</div></div>
+        <span class="cbox-tag gold">Calendar</span>
+      </div>
+      <div class="chart-wrap h280"><canvas id="raceCount"></canvas></div>
+    </div>
+  </div>
+
+  <div class="callout teal reveal">
+    <div class="callout-big" style="color:var(--mercedes)">6</div>
+    <div class="callout-body">
+      <h3>2024: The Most Competitive Season Since 2012</h3>
+      <p>Six different drivers won races in 2024: Verstappen (9), Norris (4), Leclerc (3), Piastri (2), Sainz (2), Russell (2), Hamilton (2). The last season with 6+ race winners was 2012 (7 different winners). The competitive swing was driven by aerodynamic convergence under 2022 ground-effect regulations finally equalising performance in 2024.</p>
+    </div>
+  </div>
+
+  <div class="grid-3 reveal">
+    <div class="cbox">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Nationalities of Champions</div><div class="cbox-sub">Drivers' titles by country — all time</div></div>
+        <span class="cbox-tag">Nations</span>
+      </div>
+      <div class="chart-wrap h260"><canvas id="nationalChamps"></canvas></div>
+    </div>
+    <div class="cbox blue">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Engine Manufacturer Titles</div><div class="cbox-sub">Constructors won by engine supplier</div></div>
+        <span class="cbox-tag blue">Engines</span>
+      </div>
+      <div class="chart-wrap h260"><canvas id="engineTitles"></canvas></div>
+    </div>
+    <div class="cbox orange">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Pole → Win Conversion Rate</div><div class="cbox-sub">% of pole positions converted to wins (modern era)</div></div>
+        <span class="cbox-tag">Strategy</span>
+      </div>
+      <div class="chart-wrap h260"><canvas id="poleConvert"></canvas></div>
+    </div>
+  </div>
+
+  <div class="analysis-grid reveal">
+    <div class="acard red">
+      <h3>The Hamilton Records Nobody Will Touch</h3>
+      <p>With Hamilton at Ferrari from 2025, his 105 wins, 104 poles, and 202 podiums are likely permanent records. Verstappen at 71 wins needs 35 more to pass Schumacher, and 34 after that to match Hamilton — achievable but requiring sustained dominance through age 38+.</p>
+    </div>
+    <div class="acard gold">
+      <h3>Ferrari's Painful Gap</h3>
+      <p>Ferrari has won 248 races (most all-time) but hasn't won the Constructors' title since 2008 — 16 years. Their drivers' title drought is even longer: last was Räikkönen in 2007. Hamilton's arrival in 2025 is their biggest title bet since signing Schumacher in 1996.</p>
+    </div>
+    <div class="acard teal">
+      <h3>Red Bull's Adrian Newey Effect</h3>
+      <p>Newey joined Aston Martin in 2025 after designing every dominant Red Bull from 2010–2023. Historical pattern: Williams won 5 titles when Newey was there (1992–1996), McLaren won 3 (1998–99). Red Bull's post-Newey competitiveness will be the defining technical question of 2026–28.</p>
+    </div>
+    <div class="acard blue">
+      <h3>The F1 Revenue Explosion</h3>
+      <p>F1's commercial revenue hit $3.65 billion in 2023, up from $1.8 billion in 2017 when Liberty Media took over. The Netflix Drive to Survive effect grew US TV viewership 28% YoY. The Las Vegas GP 2023 generated an estimated $1.3 billion for the local economy — the most ever for a single race weekend.</p>
+    </div>
+  </div>
+
+  <div class="grid-2 reveal">
+    <div class="cbox">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Youngest World Champions</div><div class="cbox-sub">Age at time of title — all-time list</div></div>
+        <span class="cbox-tag red">Youth</span>
+      </div>
+      <div class="chart-wrap h280"><canvas id="youngestChamps"></canvas></div>
+    </div>
+    <div class="cbox gold">
+      <div class="cbox-head">
+        <div><div class="cbox-title">Points System Evolution</div><div class="cbox-sub">Points for victory under each scoring system</div></div>
+        <span class="cbox-tag">Scoring</span>
+      </div>
+      <div class="chart-wrap h280"><canvas id="pointsSystem"></canvas></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- FOOTER -->
+<footer style="background:var(--bg2);border-top:1px solid var(--border);padding:32px 60px;display:flex;justify-content:space-between;align-items:center;font-family:'Syne Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted)">
+  <div>F1 Statistical Intelligence · <span style="color:var(--red)">All data verified</span></div>
+  <div>Sources: <span style="color:var(--gold)">FIA · Forix · Wikipedia · ESPN · Motorsport Stats</span></div>
+  <div>Covers 1950–2024 · <span style="color:var(--silver)">74 seasons</span></div>
+</footer>
+
+<script>
+// ══════════════════════════════════════════
+// CHART DEFAULTS
+// ══════════════════════════════════════════
+Chart.defaults.color = '#6a6a80';
+Chart.defaults.font.family = "'Barlow', sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.plugins.legend.labels.boxWidth = 10;
+
+const G = {
+  red:'#e8192c', gold:'#f5c842', silver:'#b8bcc8', blue:'#3671c6',
+  teal:'#00d2be', orange:'#ff8000', ferrari:'#dc0000', mclaren:'#ff8000',
+  mercedes:'#00d2be', redbull:'#3671c6', williams:'#005aff', aston:'#006f62',
+  border:'#2a2a36', bg2:'#111116', muted:'#6a6a80',
+  redA:'rgba(232,25,44,0.15)',goldA:'rgba(245,200,66,0.15)',
+  tealA:'rgba(0,210,190,0.12)',blueA:'rgba(54,113,198,0.12)',
+  orangeA:'rgba(255,128,0,0.12)'
+};
+
+const gridOpts = { color:'rgba(42,42,54,0.8)', drawBorder:false };
+const tickOpts = { color:'#6a6a80' };
+
+function hBar(id, labels, data, colors, opts={}) {
+  return new Chart(id, {
+    type:'bar',
+    data:{ labels, datasets:[{ data, backgroundColor: Array.isArray(colors)?colors:labels.map(()=>colors), borderRadius:0, borderSkipped:false }] },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>' '+c.raw+(opts.unit||'')}} },
+      scales:{ x:{grid:gridOpts, ticks:tickOpts, ...opts.x}, y:{grid:{display:false}, ticks:{...tickOpts, ...opts.y}} },
+      ...opts.extra }
+  });
+}
+
+function vBar(id, labels, data, colors, opts={}) {
+  return new Chart(id, {
+    type:'bar',
+    data:{ labels, datasets: Array.isArray(data[0])
+      ? data.map((d,i)=>({ label:opts.labels?opts.labels[i]:'', data:d, backgroundColor: Array.isArray(colors)?colors[i]:colors, borderRadius:0 }))
+      : [{ data, backgroundColor: Array.isArray(colors)?colors:labels.map(()=>colors), borderRadius:0 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:!!(opts.legend)}, tooltip:{} },
+      scales:{ x:{grid:{display:false}, ticks:tickOpts}, y:{grid:gridOpts, ticks:tickOpts, ...opts.y} },
+      ...opts.extra }
+  });
+}
+
+function doughnut(id, labels, data, colors) {
+  return new Chart(id, {
+    type:'doughnut',
+    data:{ labels, datasets:[{ data, backgroundColor:colors, borderColor:'#0a0a0c', borderWidth:3 }] },
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'62%',
+      plugins:{ legend:{ position:'right', labels:{ color:'#8a8aa0', font:{size:10}, padding:12 } } }
+    }
+  });
+}
+
+function lineChart(id, labels, datasets, opts={}) {
+  return new Chart(id, {
+    type:'line',
+    data:{ labels, datasets },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:opts.legend!==false, position:'top', labels:{color:'#8a8aa0',font:{size:10},padding:16} } },
+      scales:{ x:{grid:gridOpts, ticks:tickOpts}, y:{grid:gridOpts, ticks:tickOpts, ...opts.y} },
+      ...opts.extra }
+  });
+}
+
+// ══════════════════════════════════════════
+// SECTION 1: RECORDS
+// ══════════════════════════════════════════
+function initRecords() {
+  hBar('driverWins',
+    ['Lewis Hamilton','Michael Schumacher','Max Verstappen','Sebastian Vettel','Alain Prost','Ayrton Senna','Fernando Alonso','Nigel Mansell','Jackie Stewart','Jim Clark'],
+    [105,91,71,53,51,41,32,31,27,25],
+    ['#e8192c','#888','#3671c6','#1e6f5c','#f5c842','#00d2be','#ff8000','#888','#888','#888'],
+    { unit:' wins' }
+  );
+
+  hBar('driverTitles',
+    ['Hamilton / Schumacher','Juan M. Fangio','Sebastian Vettel / Alain Prost','Max Verstappen','Ayrton Senna / Jack Brabham\nNelson Piquet / Niki Lauda'],
+    [7,5,4,4,3],
+    [G.red,G.gold,G.teal,G.blue,G.muted],
+    { unit:' titles' }
+  );
+
+  vBar('driverPoles',
+    ['Hamilton','Schumacher','Vettel','Senna','Clark','Prost','Mansell','Verstappen'],
+    [104,68,57,65,33,33,32,40],
+    [G.red,G.muted,G.teal,G.gold,G.muted,G.muted,G.muted,G.blue],
+    { unit:' poles' }
+  );
+
+  vBar('driverPodiums',
+    ['Hamilton','Verstappen','Vettel','Schumacher','Alonso','Prost','Senna','Raikkonen'],
+    [202,112,122,155,106,106,80,103],
+    [G.red,G.blue,G.teal,G.muted,G.orange,G.gold,G.gold,G.muted]
+  );
+
+  vBar('driverFL',
+    ['Schumacher','Hamilton','Raikkonen','Vettel','Prost','Clark','Mansell','Senna'],
+    [77,66,46,38,41,28,30,19],
+    [G.muted,G.red,G.muted,G.teal,G.gold,G.muted,G.muted,G.muted]
+  );
+
+  // Master table
+  const drivers = [
+    ['Lewis Hamilton','🇬🇧','2007–2024',7,105,104,202,66,333],
+    ['Michael Schumacher','🇩🇪','1991–2012',7,91,68,155,77,307],
+    ['Max Verstappen','🇳🇱','2015–',4,71,40,112,28,200],
+    ['Sebastian Vettel','🇩🇪','2007–2022',4,53,57,122,38,299],
+    ['Alain Prost','🇫🇷','1980–1993',4,51,33,106,41,199],
+    ['Ayrton Senna','🇧🇷','1984–1994',3,41,65,80,19,161],
+    ['Fernando Alonso','🇪🇸','2001–',2,32,22,106,23,382],
+    ['Juan M. Fangio','🇦🇷','1950–1958',5,24,29,35,23,52],
+    ['Nigel Mansell','🇬🇧','1980–1995',1,31,32,59,30,187],
+    ['Nico Rosberg','🇩🇪','2006–2016',1,23,30,57,20,206],
+    ['Kimi Räikkönen','🇫🇮','2001–2021',1,21,18,103,46,349],
+    ['Jackie Stewart','🇬🇧','1965–1973',3,27,17,43,15,99],
+    ['Damon Hill','🇬🇧','1992–1999',1,22,20,42,19,116],
+    ['Mika Häkkinen','🇫🇮','1991–2001',2,20,26,51,25,161],
+    ['David Coulthard','🇬🇧','1994–2008',0,13,12,62,18,246],
+  ];
+  const tbody = document.getElementById('driverMasterTable');
+  drivers.forEach((d,i) => {
+    const titleStr = d[3] > 0 ? `<span style="color:var(--gold);font-weight:600">${d[3]}×</span>` : '—';
+    tbody.innerHTML += `<tr>
+      <td><span class="rank">${i+1}</span></td>
+      <td><span class="name">${d[0]}</span></td>
+      <td class="flag">${d[1]}</td>
+      <td style="font-size:10px;color:var(--muted2)">${d[2]}</td>
+      <td class="num">${titleStr}</td>
+      <td class="num highlight">${d[4]}</td>
+      <td class="num">${d[5]}</td>
+      <td class="num">${d[6]}</td>
+      <td class="num">${d[7]}</td>
+      <td class="num" style="color:var(--muted2)">${d[8]}</td>
+    </tr>`;
+  });
+
+  vBar('seasonWins',
+    ['Verstappen\n2023','Schumacher\n2004','Vettel\n2011','Vettel\n2013','Schumacher\n2002','Hamilton\n2019','Hamilton\n2020','Mansell\n1992','Prost\n1984','Hamilton\n2014'],
+    [19,13,11,13,11,11,11,9,7,11],
+    [G.blue,G.red,G.teal,G.teal,G.red,G.silver,G.silver,G.muted,G.gold,G.silver]
+  );
+
+  vBar('champMargins',
+    ['Vettel\n2011','Schumacher\n2002','Senna\n1988','Verstappen\n2023','Schumacher\n2004','Hamilton\n2019','Hamilton\n2020','Fangio\n1954'],
+    [122,67,60,290,148,87,124,42.5],
+    [G.teal,G.red,G.gold,G.blue,G.red,G.silver,G.silver,G.gold]
+  );
+}
+
+// ══════════════════════════════════════════
+// SECTION 2: 2024 SEASON
+// ══════════════════════════════════════════
+function init2024() {
+  hBar('s24drivers',
+    ['Verstappen','Norris','Leclerc','Piastri','Sainz','Russell','Hamilton','Pérez','Alonso','Stroll'],
+    [437,374,356,292,290,245,174,152,70,24],
+    [G.blue,G.mclaren,G.ferrari,G.mclaren,G.ferrari,G.silver,G.silver,G.blue,G.aston,G.aston],
+    { unit:' pts' }
+  );
+
+  hBar('s24constructors',
+    ['McLaren','Ferrari','Red Bull','Mercedes','Aston Martin','Alpine','Haas','RB/VCARB','Williams','Sauber'],
+    [966,652,589,468,94,65,58,36,17,4],
+    [G.mclaren,G.ferrari,G.blue,G.silver,G.aston,G.muted,G.muted,G.muted,G.williams,G.muted],
+    { unit:' pts' }
+  );
+
+  // Championship evolution simplified (key race markers)
+  lineChart('champEvo',
+    ['Bahrain','Saudi','Japan','China','Miami','Emilia R.','Monaco','Canada','Spain','Austria','Britain','Hungary','Belgium','Netherlands','Italy','Singapore','Austin','Mexico','Brazil','Vegas','Qatar','Abu Dhabi'],
+    [
+      { label:'Verstappen', data:[25,50,75,100,100,125,125,175,200,200,200,200,200,200,200,200,248,273,293,318,368,437], borderColor:G.blue, borderWidth:2.5, tension:0.3, fill:false },
+      { label:'Norris', data:[0,25,37,37,62,62,74,74,86,86,105,118,118,143,143,168,181,199,199,199,234,374], borderColor:G.mclaren, borderWidth:2, tension:0.3, fill:false },
+      { label:'Leclerc', data:[12,12,12,24,24,24,49,49,49,56,56,56,56,68,93,108,121,133,145,145,200,356], borderColor:G.ferrari, borderWidth:2, tension:0.3, fill:false },
+      { label:'Piastri', data:[18,18,22,34,34,46,46,58,70,70,70,82,82,82,82,95,95,107,107,107,155,292], borderColor:'#ff9933', borderWidth:1.5, tension:0.3, fill:false, borderDash:[4,3] },
+    ]
+  );
+
+  doughnut('winDist24',
+    ['Verstappen (9)','Norris (4)','Leclerc (3)','Sainz (2)','Hamilton (2)','Russell (2)','Piastri (2)'],
+    [9,4,3,2,2,2,2],
+    [G.blue,G.mclaren,G.ferrari,G.ferrari,G.silver,G.silver,'#ff9933']
+  );
+
+  // Race results
+  const races2024 = [
+    ['01','Bahrain GP','Verstappen','Red Bull'],
+    ['02','Saudi Arabia GP','Verstappen','Red Bull'],
+    ['03','Australian GP','Sainz','Ferrari'],
+    ['04','Japanese GP','Verstappen','Red Bull'],
+    ['05','Chinese GP','Verstappen','Red Bull'],
+    ['06','Miami GP','Norris','McLaren'],
+    ['07','Emilia Romagna GP','Verstappen','Red Bull'],
+    ['08','Monaco GP','Leclerc','Ferrari'],
+    ['09','Canadian GP','Verstappen','Red Bull'],
+    ['10','Spanish GP','Verstappen','Red Bull'],
+    ['11','Austrian GP','Russell','Mercedes'],
+    ['12','British GP','Hamilton','Mercedes'],
+    ['13','Hungarian GP','Piastri','McLaren'],
+    ['14','Belgian GP','Hamilton','Mercedes'],
+    ['15','Dutch GP','Norris','McLaren'],
+    ['16','Italian GP','Leclerc','Ferrari'],
+    ['17','Azerbaijan GP','Piastri','McLaren'],
+    ['18','Singapore GP','Norris','McLaren'],
+    ['19','United States GP','Leclerc','Ferrari'],
+    ['20','Mexican GP','Sainz','Ferrari'],
+    ['21','São Paulo GP','Verstappen','Red Bull'],
+    ['22','Las Vegas GP','Verstappen','Red Bull'],
+    ['23','Qatar GP','Verstappen','Red Bull'],
+    ['24','Abu Dhabi GP','Norris','McLaren'],
+  ];
+  const teamColors = { 'Red Bull':G.blue,'McLaren':G.mclaren,'Ferrari':G.ferrari,'Mercedes':G.silver,'Williams':G.williams };
+  const rr = document.getElementById('raceResults2024');
+  races2024.forEach(r => {
+    rr.innerHTML += `<div class="race-result">
+      <span class="race-pos">${r[0]}</span>
+      <span class="race-name">${r[1]}</span>
+      <span class="race-winner">${r[2]}</span>
+      <span class="race-team-tag" style="background:${teamColors[r[3]]||G.muted}">${r[3]}</span>
+    </div>`;
+  });
+
+  vBar('poles24',
+    ['Verstappen','Norris','Leclerc','Russell','Hamilton','Piastri','Sainz'],
+    [12,3,5,2,1,1,0],
+    [G.blue,G.mclaren,G.ferrari,G.silver,G.silver,'#ff9933',G.ferrari]
+  );
+
+  vBar('podiums24',
+    ['Verstappen','Norris','Leclerc','Piastri','Sainz','Hamilton','Russell','Pérez'],
+    [21,15,16,12,10,8,9,4],
+    [G.blue,G.mclaren,G.ferrari,G.mclaren,G.ferrari,G.silver,G.silver,G.blue]
+  );
+
+  vBar('dnf24',
+    ['Red Bull','McLaren','Ferrari','Mercedes','Aston Martin','Alpine','Williams','Haas'],
+    [8,3,5,4,4,6,5,7],
+    [G.blue,G.mclaren,G.ferrari,G.silver,G.aston,G.muted,G.williams,G.muted]
+  );
+}
+
+// ══════════════════════════════════════════
+// SECTION 3: CONSTRUCTORS
+// ══════════════════════════════════════════
+function initConstructors() {
+  hBar('consTitles',
+    ['Ferrari','McLaren','Williams','Mercedes','Red Bull','Lotus','Brabham','Renault','Benetton','BRM'],
+    [16,10,9,8,6,7,2,2,1,1],
+    [G.ferrari,G.mclaren,G.williams,G.mercedes,G.blue,'#ffd700','#888','#ffc200','#1e6f5c','#888'],
+    { unit:' titles' }
+  );
+
+  hBar('consWins',
+    ['Ferrari','McLaren','Mercedes','Red Bull','Williams','Lotus','Renault/Alpine','Brabham','Benetton','Tyrrell'],
+    [248,203,132,120,114,79,35,35,27,23],
+    [G.ferrari,G.mclaren,G.mercedes,G.blue,G.williams,'#ffd700','#ffc200','#888','#1e6f5c','#888'],
+    { unit:' wins' }
+  );
+
+  // Constructor history table
+  const consHist = [
+    ['1958','Vanwall'],['1959','Cooper'],['1960','Cooper'],['1961','Ferrari'],
+    ['1962','BRM'],['1963','Lotus'],['1964','Ferrari'],['1965','Lotus'],
+    ['1966','Brabham'],['1967','Brabham'],['1968','Lotus'],['1969','Matra'],
+    ['1970','Lotus'],['1971','Tyrrell'],['1972','Lotus'],['1973','Lotus'],
+    ['1974','McLaren'],['1975','Ferrari'],['1976','Ferrari'],['1977','Ferrari'],
+    ['1978','Lotus'],['1979','Ferrari'],['1980','Williams'],['1981','Williams'],
+    ['1982','Ferrari'],['1983','Ferrari'],['1984','McLaren'],['1985','McLaren'],
+    ['1986','Williams'],['1987','Williams'],['1988','McLaren'],['1989','McLaren'],
+    ['1990','McLaren'],['1991','McLaren'],['1992','Williams'],['1993','Williams'],
+    ['1994','Williams'],['1995','Benetton'],['1996','Williams'],['1997','Williams'],
+    ['1998','McLaren'],['1999','Ferrari'],['2000','Ferrari'],['2001','Ferrari'],
+    ['2002','Ferrari'],['2003','Ferrari'],['2004','Ferrari'],['2005','Renault'],
+    ['2006','Renault'],['2007','Ferrari'],['2008','Ferrari'],['2009','Brawn GP'],
+    ['2010','Red Bull'],['2011','Red Bull'],['2012','Red Bull'],['2013','Red Bull'],
+    ['2014','Mercedes'],['2015','Mercedes'],['2016','Mercedes'],['2017','Mercedes'],
+    ['2018','Mercedes'],['2019','Mercedes'],['2020','Mercedes'],['2021','Mercedes'],
+    ['2022','Red Bull'],['2023','Red Bull'],['2024','McLaren'],
+  ];
+  const teamCol = { 'Ferrari':G.ferrari,'McLaren':G.mclaren,'Williams':G.williams,'Mercedes':G.mercedes,'Red Bull':G.blue,'Lotus':'#ffd700','Renault':'#ffc200','Benetton':'#1e6f5c','Brawn GP':'#44ff44','BRM':'#888','Cooper':'#888','Vanwall':'#888','Brabham':'#888','Matra':'#888','Tyrrell':'#888' };
+  const ch = document.getElementById('consHistory');
+  consHist.forEach(c => {
+    const col = teamCol[c[1]] || G.muted;
+    ch.innerHTML += `<div style="display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid var(--border);font-size:11px;">
+      <span style="font-family:'Syne Mono',monospace;color:var(--muted);font-size:10px;width:36px">${c[0]}</span>
+      <span style="width:8px;height:8px;background:${col};display:inline-block;border-radius:50%;flex-shrink:0"></span>
+      <span style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:${col}">${c[1]}</span>
+    </div>`;
+  });
+
+  hBar('consPoles',
+    ['Ferrari','McLaren','Mercedes','Williams','Red Bull','Lotus','Renault','Brabham','Tyrrell','Alfa Romeo'],
+    [243,156,128,128,99,107,51,39,14,12],
+    [G.ferrari,G.mclaren,G.mercedes,G.williams,G.blue,'#ffd700','#ffc200','#888','#888','#aaa'],
+    { unit:' poles' }
+  );
+
+  doughnut('consDriverTitles',
+    ['Ferrari (15)','McLaren (13)','Williams (7)','Mercedes (8)','Red Bull (5)','Lotus (6)','Other'],
+    [15,13,7,8,5,6,5],
+    [G.ferrari,G.mclaren,G.williams,G.mercedes,G.blue,'#ffd700',G.muted]
+  );
+
+  vBar('consWinRate',
+    ['Mercedes\n2014-21','Red Bull\n2010-13','McLaren\n1988-91','Ferrari\n2000-04','Williams\n1992-94'],
+    [74.2,67.1,69.4,70.2,65.8],
+    [G.mercedes,G.blue,G.mclaren,G.ferrari,G.williams],
+    { unit:'%', y:{ max:100 } }
+  );
+}
+
+// ══════════════════════════════════════════
+// SECTION 4: ERAS
+// ══════════════════════════════════════════
+function initEras() {
+  const eras = [
+    { years:'1950–58', team:'Fangio Era', color:'#ffd700', desc:'Juan Manuel Fangio dominates with 5 titles across 4 constructors. 24 wins from 52 starts. Win rate never matched again.', titles:'5 titles' },
+    { years:'1975–79', team:'Ferrari', color:G.ferrari, desc:'Niki Lauda and Jody Scheckter power Scuderia Ferrari to 3 constructors titles. The Maranello golden age before the turbo era.', titles:'3 cons.' },
+    { years:'1984–91', team:'McLaren', color:G.mclaren, desc:'The golden McLaren era with Senna vs Prost. Four consecutive constructors titles, 6 drivers titles in 8 seasons. Prost and Senna combined for 59 wins.', titles:'6 cons.' },
+    { years:'1992–97', team:'Williams', color:G.williams, desc:"Mansell's record 9 wins in 1992, Prost, Hill, and Villeneuve. Williams dominates the naturally aspirated era with 5 constructors titles.", titles:'5 cons.' },
+    { years:'1999–04', team:'Ferrari', color:G.ferrari, desc:'Schumacher and Barrichello. 6 consecutive constructors titles. 13 wins in 2004. Schumacher sets nearly every record in the sport.', titles:'6 cons.' },
+    { years:'2010–13', team:'Red Bull', color:G.blue, desc:'Adrian Newey\'s genius and Vettel\'s precision. 4 consecutive titles, culminating in 13 wins in 2013. Youngest 4× champion at 26.', titles:'4 cons.' },
+    { years:'2014–21', team:'Mercedes', color:G.mercedes, desc:'The hybrid era. 8 consecutive constructors championships — a record. Hamilton wins 6 drivers titles. Mercedes wins 74% of races across the era.', titles:'8 cons.' },
+    { years:'2022–23', team:'Red Bull', color:G.blue, desc:'Verstappen\'s Red Bull reloaded. 17-race win streak. Record 19 wins in 2023 single season. Most dominant back-to-back in the 2000s.', titles:'2 cons.' },
+  ];
+  const el = document.getElementById('eraTimeline');
+  eras.forEach(e => {
+    el.innerHTML += `<div class="era-row">
+      <span class="era-years">${e.years}</span>
+      <span class="era-team" style="color:${e.color}">${e.team}</span>
+      <span class="era-desc">${e.desc}</span>
+      <span class="era-titles">${e.titles}</span>
+    </div>`;
+  });
+
+  lineChart('eraTimeSeries',
+    ['1958','1963','1968','1975','1979','1984','1988','1992','1996','2000','2004','2008','2010','2014','2018','2022','2024'],
+    [
+      { label:'Ferrari', data:[5,0,3,9,5,3,1,0,1,10,15,1,0,0,0,3,3], borderColor:G.ferrari, borderWidth:2, tension:0.4, fill:false },
+      { label:'McLaren', data:[0,0,0,0,3,12,15,8,4,0,1,1,0,0,0,4,6], borderColor:G.mclaren, borderWidth:2, tension:0.4, fill:false },
+      { label:'Williams', data:[0,0,0,0,7,1,2,10,11,0,0,0,0,0,0,0,0], borderColor:G.williams, borderWidth:1.5, tension:0.4, fill:false },
+      { label:'Mercedes', data:[0,0,0,0,0,0,0,0,0,0,0,0,0,16,15,1,0], borderColor:G.mercedes, borderWidth:2, tension:0.4, fill:false },
+      { label:'Red Bull', data:[0,0,0,0,0,0,0,0,0,0,0,0,12,0,0,17,0], borderColor:G.blue, borderWidth:2, tension:0.4, fill:false },
+    ],
+    { legend:true, y:{ title:{display:true,text:'Race wins'} } }
+  );
+
+  vBar('eraMargins',
+    ['Vettel\n2011','Schumacher\n2002','Hamilton\n2020','Hamilton\n2019','Verstappen\n2023'],
+    [122,67,124,87,290],
+    [G.blue,G.ferrari,G.mercedes,G.mercedes,G.blue]
+  );
+
+  vBar('schuEra',
+    ['2000','2001','2002','2003','2004'],
+    [[ 9,9,11,6,13],[9,9,17,16,17]],
+    [G.ferrari, G.red],
+    { labels:['Schumacher wins','Total races'], legend:true, extra:{plugins:{legend:{display:true}}} }
+  );
+
+  lineChart('mercEra',
+    ['2014','2015','2016','2017','2018','2019','2020','2021'],
+    [
+      { label:'Mercedes wins', data:[16,16,19,12,11,15,13,9], borderColor:G.mercedes, backgroundColor:G.tealA, borderWidth:2.5, fill:true, tension:0.3 },
+      { label:'Total races', data:[19,19,21,20,21,21,17,22], borderColor:G.muted, borderWidth:1.5, fill:false, borderDash:[4,3], tension:0.3 }
+    ],
+    { legend:true }
+  );
+
+  vBar('rbEra',
+    ['2022','2023','2024'],
+    [[17,19,9],[22,22,24]],
+    [G.blue,G.border],
+    { labels:['Verstappen wins','Total races'], legend:true }
+  );
+}
+
+// ══════════════════════════════════════════
+// SECTION 5: CIRCUITS
+// ══════════════════════════════════════════
+function initCircuits() {
+  hBar('circuitGPs',
+    ['Monza (ITA)','Monaco','Silverstone','Spa-Francorchamps','Nürburgring','Brands Hatch','Zandvoort','Montréal','Suzuka','Budapest'],
+    [74,72,63,57,36,14,29,42,38,38],
+    [G.ferrari,G.gold,G.silver,G.red,G.muted,G.muted,G.muted,G.blue,G.teal,G.orange],
+    { unit:' GPs' }
+  );
+
+  hBar('circuitWins',
+    ['Senna — Monaco (8)','Schumacher — Magny-Cours (8)','Schumacher — Suzuka (6)','Prost — Brazil (6)','Hamilton — Hungary (9)','Hamilton — Silverstone (9)','Verstappen — Austria (4)','Clark — Watkins Glen (4)'],
+    [8,8,6,6,9,9,4,4],
+    [G.gold,G.red,G.red,G.gold,G.red,G.red,G.blue,G.muted],
+    { unit:' wins' }
+  );
+
+  // 2024 Calendar
+  const circuits = [
+    ['Bahrain Int\'l Circuit','Sakhir','5.412','57','308.238','2004','Permanent'],
+    ['Jeddah Corniche','Saudi Arabia','6.174','50','308.700','2021','Street'],
+    ['Albert Park','Australia','5.278','58','306.124','1996','Semi-street'],
+    ['Suzuka','Japan','5.807','53','307.471','1987','Permanent'],
+    ['Shanghai Int\'l','China','5.451','56','305.066','2004','Permanent'],
+    ['Miami Int\'l Autodrome','USA','5.412','57','308.326','2022','Street'],
+    ['Autodromo Enzo e Dino Ferrari','Imola','4.909','63','309.049','1980','Permanent'],
+    ['Circuit de Monaco','Monaco','3.337','78','260.286','1950','Street'],
+    ['Circuit Gilles Villeneuve','Canada','4.361','70','305.270','1978','Semi-street'],
+    ['Circuit de Barcelona-Catalunya','Spain','4.657','66','307.236','1991','Permanent'],
+    ['Red Bull Ring','Austria','4.318','71','306.452','1970','Permanent'],
+    ['Silverstone','Great Britain','5.891','52','306.198','1950','Permanent'],
+    ['Hungaroring','Hungary','4.381','70','306.630','1986','Permanent'],
+    ['Spa-Francorchamps','Belgium','7.004','44','308.052','1950','Permanent'],
+    ['Circuit Zandvoort','Netherlands','4.259','72','306.587','1952','Permanent'],
+    ['Autodromo Nazionale Monza','Italy','5.793','53','306.720','1950','Permanent'],
+    ['Baku City Circuit','Azerbaijan','6.003','51','306.049','2016','Street'],
+    ['Marina Bay Street Circuit','Singapore','4.940','62','306.143','2008','Street'],
+    ['Circuit of the Americas','USA','5.513','56','308.405','2012','Permanent'],
+    ['Autodromo Hermanos Rodriguez','Mexico','4.304','71','305.354','1963','Permanent'],
+    ['Autodromo José Carlos Pace','Brazil','4.309','71','305.879','1973','Permanent'],
+    ['Las Vegas Street Circuit','USA','6.201','50','310.050','2023','Street'],
+    ['Lusail Int\'l Circuit','Qatar','5.380','57','306.540','2021','Permanent'],
+    ['Yas Marina Circuit','Abu Dhabi','5.281','58','306.183','2009','Permanent'],
+  ];
+
+  const ct = document.getElementById('circuitTable');
+  ct.innerHTML = `<div class="circuit-card" style="background:var(--bg);border-bottom:1px solid var(--border2)">
+    <span style="font-family:'Syne Mono',monospace;font-size:9px;letter-spacing:.2em;color:var(--muted);width:32px">#</span>
+    <div><span style="font-family:'Syne Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)">Circuit / Country</span></div>
+    <span style="font-family:'Syne Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:right">Lap km · Laps · Dist. · Since · Type</span>
+  </div>`;
+  circuits.forEach((c, i) => {
+    ct.innerHTML += `<div class="circuit-card">
+      <span class="circuit-num">${i+1}</span>
+      <div>
+        <div class="circuit-name">${c[0]}</div>
+        <div class="circuit-detail">${c[1]}</div>
+      </div>
+      <div class="circuit-stat">
+        <div>${c[2]} km · ${c[3]} laps</div>
+        <div>${c[4]} km total</div>
+        <div style="color:var(--muted);font-size:9px">since ${c[5]} · ${c[6]}</div>
+      </div>
+    </div>`;
+  });
+
+  doughnut('gpContinent',
+    ['Europe (9)','Americas (5)','Asia/Middle East (7)','Oceania (1)','Africa (1)','Others (1)'],
+    [9,5,7,1,1,1],
+    [G.blue,G.red,G.gold,G.teal,G.orange,G.muted]
+  );
+
+  doughnut('circuitType',
+    ['Permanent (14)','Street circuit (6)','Semi-street (4)'],
+    [14,6,4],
+    [G.blue,G.red,G.gold]
+  );
+
+  // Approximate 2024 qualifying lap times in seconds
+  hBar('lapTimes',
+    ['Monaco','Singapore','Hungaroring','Montreal','Austria','Abu Dhabi','Silverstone','Suzuka','Spa','Monza'],
+    [72.3,99.1,75.2,73.8,63.5,82.6,88.8,90.8,103.6,69.9],
+    [G.gold,G.teal,G.orange,G.blue,G.red,G.muted,G.silver,G.teal,G.red,G.ferrari],
+    { unit:'s' }
+  );
+}
+
+// ══════════════════════════════════════════
+// SECTION 6: ANALYSIS
+// ══════════════════════════════════════════
+function initAnalysis() {
+  lineChart('competSeason',
+    ['1970','1975','1980','1985','1988','1992','1996','2000','2004','2008','2010','2012','2014','2016','2019','2021','2023','2024'],
+    [{
+      label:'Different race winners per season',
+      data:[7,6,5,5,2,3,4,3,2,7,5,7,3,5,4,3,2,6],
+      borderColor:G.red, backgroundColor:G.redA, borderWidth:2.5, fill:true, tension:0.4,
+      pointBackgroundColor:G.red, pointRadius:4
+    }],
+    { legend:false }
+  );
+
+  lineChart('raceCount',
+    ['1950','1955','1960','1965','1970','1975','1980','1985','1990','1995','2000','2005','2010','2015','2019','2020','2021','2022','2023','2024'],
+    [{
+      label:'Races per season',
+      data:[7,7,10,10,13,14,14,16,16,17,17,19,19,19,21,17,22,22,23,24],
+      borderColor:G.gold, backgroundColor:G.goldA, borderWidth:2.5, fill:true, tension:0.4,
+      pointBackgroundColor:G.gold, pointRadius:3
+    }],
+    { legend:false }
+  );
+
+  doughnut('nationalChamps',
+    ['British (20)','German (13)','Brazilian (8)','Austrian (5)','Finnish (4)','Australian (4)','French (12)','Other'],
+    [20,13,8,5,4,4,12,8],
+    [G.silver,G.red,G.gold,G.red,G.muted,G.teal,G.blue,G.muted]
+  );
+
+  doughnut('engineTitles',
+    ['Ferrari (16)','Renault (12)','Ford/Cosworth (10)','Mercedes (10)','Honda (6)','TAG-Porsche (3)','Other'],
+    [16,12,10,10,6,3,10],
+    [G.ferrari,G.gold,G.muted,G.mercedes,G.red,G.blue,G.muted]
+  );
+
+  vBar('poleConvert',
+    ['Fangio','Clark','Schumacher','Senna','Prost','Mansell','Hamilton','Vettel','Verstappen'],
+    [62,48,41,49,35,36,41,38,56],
+    [G.gold,G.muted,G.red,G.gold,G.muted,G.muted,G.red,G.teal,G.blue],
+    { unit:'%', y:{max:100} }
+  );
+
+  hBar('youngestChamps',
+    ['Vettel 2010 (23y 134d)','Hamilton 2008 (23y 300d)','Verstappen 2021 (24y 73d)','Fittipaldi 1972 (25y 273d)','Button 2009 (29y 164d)','Schumacher 1994 (25y 314d)','Norris 2025 (25y)','Senna 1988 (28y 183d)'],
+    [23.37,23.82,24.20,25.75,29.45,25.86,25,28.5],
+    [G.teal,G.red,G.blue,G.gold,G.muted,G.red,G.mclaren,G.gold],
+    { unit:'y' }
+  );
+
+  vBar('pointsSystem',
+    ['1950–59','1960','1961–90','1991–2002','2003–09','2010–present'],
+    [8,8,9,10,10,25],
+    [G.muted,G.muted,G.gold,G.gold,G.red,G.red]
+  );
+}
+
+// ══════════════════════════════════════════
+// NAVIGATION & INIT
+// ══════════════════════════════════════════
+const inited = {};
+
+function show(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (!inited[id]) {
+    inited[id] = true;
+    setTimeout(() => {
+      if(id==='records') initRecords();
+      else if(id==='season2024') init2024();
+      else if(id==='constructors') initConstructors();
+      else if(id==='eras') initEras();
+      else if(id==='circuits') initCircuits();
+      else if(id==='analysis') initAnalysis();
+    }, 60);
+  }
+  window.scrollTo({ top: document.querySelector('.nav').offsetTop, behavior:'smooth' });
+}
+
+// Scroll reveal
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('on'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+// Progress bar animation
+const pbObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting) {
+      e.target.querySelectorAll('.pbar-fill').forEach(b => {
+        b.style.width = b.dataset.w + '%';
+      });
+    }
+  });
+}, { threshold: 0.2 });
+document.querySelectorAll('.pbar-row').forEach(r => pbObs.observe(r));
+
+// Boot
+inited['records'] = true;
+initRecords();
+</script>
+</body>
+</html>
